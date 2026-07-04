@@ -1,0 +1,7 @@
+tunnel: kapruka-ai-agent
+credentials-file: /etc/cloudflared/<tunnel-id>.json
+
+ingress:
+  - hostname: kapruka.example.com
+    service: http://localhost:80
+  - service: http_status:404

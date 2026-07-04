@@ -14,6 +14,10 @@ interface Harness {
   close: () => Promise<void>;
 }
 
+interface HarnessOptions {
+  clientKeepaliveMs?: number;
+}
+
 const openHarnesses: Harness[] = [];
 
 describe("voice relay server", () => {
@@ -292,9 +296,20 @@ describe("voice relay server", () => {
     expect(messages.filter((message) => message.type === "error")).toHaveLength(1);
     expect(harness.getGeminiConnectionCount()).toBe(0);
   });
+
+  it("sends client keepalive pings for tunneled websocket sessions", async () => {
+    const harness = await createHarness("https://checkout.kapruka.com/pay/123", {
+      clientKeepaliveMs: 10,
+    });
+
+    await expect(waitForPing(harness.client)).resolves.toBeUndefined();
+  });
 });
 
-async function createHarness(paymentUrl: string): Promise<Harness> {
+async function createHarness(
+  paymentUrl: string,
+  options: HarnessOptions = {},
+): Promise<Harness> {
   const tokenSecret = "relay-test-secret";
   const mcp = await startMockMcpServer(paymentUrl);
   const gemini = await startMockGeminiServer();
@@ -307,12 +322,13 @@ async function createHarness(paymentUrl: string): Promise<Harness> {
     geminiTextEndpoint: flash.url,
     geminiTextModel: "gemini-3.5-flash",
     mcpEndpoint: mcp.url,
+    clientKeepaliveMs: options.clientKeepaliveMs,
   });
   await once(relay, "listening");
 
   const relayPort = (relay.address() as AddressInfo).port;
   const { token } = createVoiceSessionToken(tokenSecret);
-  const client = new WebSocket(`ws://127.0.0.1:${relayPort}?token=${token}`);
+  const client = new WebSocket(`ws://127.0.0.1:${relayPort}/relay?token=${token}`);
   const ready = waitForMessage(client, (message) => message.type === "ready");
   await once(client, "open");
   await ready;
@@ -677,6 +693,21 @@ function checkoutDetails() {
     giftMessage: "Happy birthday",
     currency: "LKR",
   };
+}
+
+function waitForPing(socket: WebSocket): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      socket.off("ping", onPing);
+      reject(new Error("Timed out waiting for relay ping."));
+    }, 500);
+    const onPing = () => {
+      clearTimeout(timeout);
+      resolve();
+    };
+
+    socket.once("ping", onPing);
+  });
 }
 
 function waitForMessage(

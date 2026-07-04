@@ -93,4 +93,28 @@ describe("voice session route", () => {
     expect(relayUrl.protocol).toBe("wss:");
     expect(relayUrl.host).toBe("127.0.0.1:8787");
   });
+
+  it("rewrites local relay paths for HTTPS Cloudflare tunnel requests", async () => {
+    process.env.VOICE_RELAY_PUBLIC_URL = "ws://127.0.0.1/relay";
+    process.env.VOICE_RELAY_TOKEN_SECRET = "test-secret";
+
+    const response = await POST(
+      new Request("http://127.0.0.1/api/voice-session", {
+        method: "POST",
+        headers: {
+          host: "kapruka-demo.trycloudflare.com",
+          "x-forwarded-host": "kapruka-demo.trycloudflare.com",
+          "x-forwarded-proto": "https",
+        },
+      }),
+    );
+    const body = await response.json();
+    const relayUrl = new URL(body.relayUrl);
+
+    expect(response.status).toBe(200);
+    expect(relayUrl.protocol).toBe("wss:");
+    expect(relayUrl.host).toBe("kapruka-demo.trycloudflare.com");
+    expect(relayUrl.pathname).toBe("/relay");
+    expect(relayUrl.searchParams.get("token")).toBeTruthy();
+  });
 });

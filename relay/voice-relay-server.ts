@@ -47,6 +47,7 @@ const DEFAULT_GEMINI_LIVE_MODEL = "gemini-3.1-flash-live-preview";
 const DEFAULT_LIVE_SESSION_MAX_MS = 180_000;
 const LIVE_IDLE_TIMEOUT_MS = 45_000;
 const LIVE_SETUP_TIMEOUT_MS = 15_000;
+const DEFAULT_CLIENT_KEEPALIVE_MS = 25_000;
 
 export type RelayTlsConfig = Pick<ServerOptions, "ca" | "cert" | "key">;
 
@@ -64,6 +65,7 @@ export interface RelayConfig {
   liveEnabled?: boolean;
   voiceUtteranceMaxMs?: number;
   liveSessionMaxMs?: number;
+  clientKeepaliveMs?: number;
   mcpEndpoint?: string;
 }
 
@@ -165,9 +167,11 @@ async function handleClientConnection(
   request: IncomingMessage,
   config: RelayConfig,
 ): Promise<void> {
+  const clientKeepaliveTimer = startClientKeepalive(client, config);
   const token = extractToken(request);
   if (!token || !verifyVoiceSessionToken(token, config.tokenSecret)) {
     logRelay("connection.invalid_token", { hasToken: Boolean(token) });
+    clearInterval(clientKeepaliveTimer);
     client.close(1008, "Invalid voice session");
     return;
   }
@@ -204,6 +208,7 @@ async function handleClientConnection(
   };
 
   client.on("close", () => {
+    clearInterval(clientKeepaliveTimer);
     logRelay("connection.client_closed", {
       hadLiveSocket: Boolean(session.liveSocket),
     });
@@ -229,6 +234,21 @@ async function handleClientConnection(
   logRelay("connection.ready");
   sendJson(client, { type: "ready" });
   sendJson(client, { type: "status", status: "IDLE" });
+}
+
+function startClientKeepalive(
+  client: WebSocket,
+  config: RelayConfig,
+): ReturnType<typeof setInterval> {
+  const intervalMs = config.clientKeepaliveMs ?? DEFAULT_CLIENT_KEEPALIVE_MS;
+  const timer = setInterval(() => {
+    if (client.readyState !== WebSocket.OPEN) return;
+
+    logRelay("connection.keepalive.ping");
+    client.ping();
+  }, intervalMs);
+  timer.unref?.();
+  return timer;
 }
 
 async function handleClientMessage(

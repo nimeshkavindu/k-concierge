@@ -36,6 +36,7 @@ const server = createVoiceRelayServer({
   tls,
   voiceUtteranceMaxMs: Number(process.env.VOICE_UTTERANCE_MAX_MS ?? 30_000),
   liveSessionMaxMs: Number(process.env.LIVE_SESSION_MAX_MS ?? 180_000),
+  clientKeepaliveMs: Number(process.env.VOICE_RELAY_KEEPALIVE_MS ?? 25_000),
   mcpEndpoint: process.env.MCP_ENDPOINT,
 });
 

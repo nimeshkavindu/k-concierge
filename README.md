@@ -39,6 +39,19 @@ to the request host when the app is opened from another device on the same LAN,
 so a phone using `http://<your-laptop-ip>:3000` receives
 `ws://<your-laptop-ip>:8787`.
 
+For a VPS behind Nginx and Cloudflare Tunnel, use a local relay URL with the
+public path:
+
+```bash
+VOICE_RELAY_PUBLIC_URL=ws://127.0.0.1/relay
+VOICE_RELAY_HOST=127.0.0.1
+VOICE_RELAY_PORT=8787
+VOICE_RELAY_KEEPALIVE_MS=25000
+```
+
+When the app is opened through an HTTPS Cloudflare hostname, `/api/voice-session`
+rewrites this to `wss://<public-host>/relay`.
+
 ## Development
 
 ```bash
@@ -81,6 +94,80 @@ WASM fallback. On this machine, the installed native `@next/swc-linux-x64-gnu`
 binary exits with `Bus error (core dumped)` before Next can fall back. Remove
 `NEXT_TEST_WASM=1` and `--webpack` from the scripts after native SWC works on the
 target runtime.
+
+## DigitalOcean VPS + Cloudflare Tunnel
+
+The repo includes deployment assets for running the whole app on one Ubuntu VPS:
+
+- `ecosystem.config.cjs` runs the Next.js app and relay with PM2.
+- `deploy/nginx/kapruka-ai-agent.conf` proxies `/` to Next.js and `/relay` to
+  the WebSocket relay.
+- `deploy/cloudflare/config.example.yml` is a starting point for a named
+  Cloudflare Tunnel when you have a domain.
+
+On the VPS:
+
+```bash
+git clone <repo-url> kapruka-ai-agent
+cd kapruka-ai-agent
+npm ci
+cp .env.example .env.local
+```
+
+Edit `.env.local` with real secrets and production values:
+
+```bash
+GEMINI_API_KEY=your_gemini_key
+VOICE_RELAY_TOKEN_SECRET=<long-random-secret>
+VOICE_RELAY_PUBLIC_URL=ws://127.0.0.1/relay
+VOICE_RELAY_HOST=127.0.0.1
+VOICE_RELAY_PORT=8787
+VOICE_RELAY_KEEPALIVE_MS=25000
+MCP_ENDPOINT=https://mcp.kapruka.com/mcp
+```
+
+Build both runtimes:
+
+```bash
+npm run relay:build
+npm run build
+```
+
+Install PM2 and start the processes:
+
+```bash
+sudo npm install -g pm2
+pm2 start ecosystem.config.cjs
+pm2 save
+pm2 startup systemd
+```
+
+`pm2 startup systemd` prints a `sudo ... pm2 startup ...` command. Run that
+printed command once so PM2 restarts the app after a reboot.
+
+Install the Nginx proxy:
+
+```bash
+sudo cp deploy/nginx/kapruka-ai-agent.conf /etc/nginx/sites-available/kapruka-ai-agent
+sudo ln -sf /etc/nginx/sites-available/kapruka-ai-agent /etc/nginx/sites-enabled/kapruka-ai-agent
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+For a free temporary HTTPS link, run:
+
+```bash
+cloudflared tunnel --url http://localhost:80
+```
+
+Cloudflare will print a random `https://*.trycloudflare.com` URL. This is good
+for demos and testing. For a stable hostname, create a named tunnel in
+Cloudflare, adapt `deploy/cloudflare/config.example.yml`, and keep
+`VOICE_RELAY_PUBLIC_URL=ws://127.0.0.1/relay` unless the relay is exposed through
+a different public path.
+
+Keep the droplet firewall tight: expose SSH as needed, and prefer Cloudflare
+Tunnel for public HTTP/HTTPS access instead of opening app ports directly.
 
 ## Verification
 
