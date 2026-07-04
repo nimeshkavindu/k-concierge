@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "declaration": false,
+    "incremental": false,
+    "isolatedModules": false,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": false,
+    "outDir": "dist-relay",
+    "target": "ES2022",
+    "types": ["node"]
+  },
+  "include": [
+    "relay/**/*.ts",
+    "src/lib/cart.ts",
+    "src/lib/mcp-client.ts",
+    "src/lib/validation.ts",
+    "src/lib/voice-contracts.ts",
+    "src/lib/voice-token.ts"
+  ],
+  "exclude": ["node_modules", "dist-relay", "**/*.test.ts", "**/*.test.tsx"]
+}

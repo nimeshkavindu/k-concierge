@@ -1,0 +1,527 @@
+@import "tailwindcss";
+
+@theme {
+  --color-kapruka-red: #D32F2F;
+  --color-retail-charcoal: #171312;
+  --color-retail-muted: #6B625D;
+  --color-retail-gray: #F7F4EF;
+  --color-retail-ivory: #FFF9F0;
+  --color-retail-gold: #B7791F;
+  --color-retail-amber: #F6C453;
+  --color-retail-border: #E9DDD0;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+html, body {
+  background-color: #FFF9F0;
+  color: var(--color-retail-charcoal);
+  font-family: var(--font-sans);
+  height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.app-luminous-bg {
+  background:
+    radial-gradient(ellipse at 18% 4%, rgba(211, 47, 47, 0.06), transparent 34%),
+    radial-gradient(ellipse at 82% 0%, rgba(246, 196, 83, 0.14), transparent 38%),
+    linear-gradient(145deg, #fbf6ee 0%, #ffffff 46%, #f5ece2 100%);
+}
+
+.display-serif {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.app-device-shell {
+  background:
+    radial-gradient(ellipse at 50% 12%, rgba(246, 196, 83, 0.09), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 252, 247, 0.96));
+}
+
+.concierge-canvas {
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(246, 196, 83, 0.10), transparent 36%),
+    radial-gradient(ellipse at 92% 80%, rgba(211, 47, 47, 0.04), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 250, 244, 0.82));
+}
+
+.desktop-icon-rail {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(233, 221, 208, 0.86);
+  border-radius: 1.5rem;
+  box-shadow: 0 22px 60px rgba(23, 19, 18, 0.10);
+  flex-direction: column;
+  inset: 0.75rem auto 0.75rem 0.75rem;
+  padding: 2.25rem 0.65rem;
+  position: fixed;
+  width: 4.75rem;
+  z-index: 35;
+}
+
+.voice-bottom-dock {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(233, 221, 208, 0.94);
+  border-radius: 1.35rem;
+  bottom: 1.5rem;
+  box-shadow: 0 22px 70px rgba(23, 19, 18, 0.12);
+  gap: 1rem;
+  left: calc(5.75rem + 2rem);
+  padding: 0.85rem 1rem;
+  position: fixed;
+  right: 2rem;
+  z-index: 36;
+}
+
+.home-screen {
+  background:
+    radial-gradient(circle at 50% 68%, rgba(246, 196, 83, 0.16), transparent 25%),
+    radial-gradient(ellipse at 50% 10%, rgba(255, 255, 255, 0.92), transparent 55%);
+}
+
+.intent-constellation-map {
+  min-height: 24rem;
+}
+
+.constellation-lines {
+  inset: 0;
+  position: absolute;
+}
+
+.constellation-lines::before,
+.constellation-lines::after {
+  background: rgba(183, 121, 31, 0.24);
+  content: "";
+  height: 1px;
+  left: 18%;
+  position: absolute;
+  right: 18%;
+  top: 50%;
+  transform-origin: center;
+}
+
+.constellation-lines::before {
+  transform: rotate(24deg);
+}
+
+.constellation-lines::after {
+  transform: rotate(-24deg);
+}
+
+.constellation-core {
+  align-items: center;
+  background:
+    radial-gradient(circle, rgba(246, 196, 83, 0.96), rgba(246, 196, 83, 0.36) 55%, transparent 72%);
+  border: 1px solid rgba(183, 121, 31, 0.28);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 10px rgba(246, 196, 83, 0.10),
+    0 18px 48px rgba(183, 121, 31, 0.24);
+  color: white;
+  height: 6.75rem;
+  justify-content: center;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 6.75rem;
+  z-index: 1;
+}
+
+.intent-orbit-node {
+  animation: productCardEnter 520ms ease both;
+  z-index: 2;
+}
+
+.results-screen {
+  min-height: calc(100dvh - 8rem);
+}
+
+.results-toolbar {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+}
+
+.results-heading-grid {
+  align-items: stretch;
+  display: grid;
+  gap: 1rem;
+}
+
+.assistant-reply-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 249, 240, 0.78));
+  border: 1px solid rgba(233, 221, 208, 0.94);
+  border-radius: 1.25rem;
+  box-shadow: 0 18px 48px rgba(23, 19, 18, 0.06);
+  min-width: 0;
+  padding: 1rem;
+}
+
+.route-filter-panel {
+  align-content: start;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.route-filter-button {
+  align-items: start;
+  border-radius: 0.95rem;
+  border-width: 1px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  justify-content: center;
+  min-height: 3.5rem;
+  min-width: 0;
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.route-filter-button:hover {
+  transform: translateY(-1px);
+}
+
+.product-results-grid {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+}
+
+.product-side-grid {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+
+.hero-product-card {
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.focused-product-shell {
+  animation: productFocusReveal 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 246, 235, 0.92));
+  border: 1px solid rgba(246, 196, 83, 0.42);
+  border-radius: 1.5rem;
+  box-shadow: 0 28px 80px rgba(23, 19, 18, 0.13);
+  display: grid;
+  gap: 1rem;
+  margin-inline: auto;
+  max-width: 56rem;
+  min-width: 0;
+  overflow: hidden;
+  padding: 1rem;
+  width: 100%;
+}
+
+.focused-product-media {
+  aspect-ratio: 4 / 3;
+  background: var(--color-retail-gray);
+  border-radius: 1.1rem;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.focused-product-content {
+  align-self: center;
+  min-width: 0;
+  padding: 0.35rem;
+}
+
+.focused-product-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.focused-product-facts span {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--color-retail-border);
+  border-radius: 999px;
+  color: var(--color-retail-charcoal);
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 0.4rem;
+  min-height: 2rem;
+  padding: 0.4rem 0.7rem;
+}
+
+.focused-product-facts svg {
+  color: var(--color-retail-gold);
+  flex-shrink: 0;
+}
+
+.checkout-journey-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.checkout-workspace {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.order-summary-card {
+  align-self: start;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--color-retail-border);
+  border-radius: 1.5rem;
+  box-shadow: 0 22px 60px rgba(23, 19, 18, 0.08);
+  padding: 1.25rem;
+}
+
+.concierge-rail {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 249, 240, 0.72)),
+    linear-gradient(135deg, rgba(211, 47, 47, 0.04), transparent 36%);
+}
+
+.concierge-hero {
+  background:
+    radial-gradient(ellipse at 72% 12%, rgba(246, 196, 83, 0.22), transparent 42%),
+    radial-gradient(ellipse at 15% 80%, rgba(211, 47, 47, 0.08), transparent 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 249, 240, 0.78));
+}
+
+.cinematic-panel,
+.searching-cinema {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(255, 249, 240, 0.74)),
+    radial-gradient(ellipse at 86% 0%, rgba(246, 196, 83, 0.18), transparent 42%);
+}
+
+.intent-constellation::before {
+  background:
+    linear-gradient(120deg, transparent 0 22%, rgba(183, 121, 31, 0.18) 22% 23%, transparent 23% 48%, rgba(211, 47, 47, 0.10) 48% 49%, transparent 49%),
+    radial-gradient(circle at 78% 70%, rgba(246, 196, 83, 0.18), transparent 36%);
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+.intent-node {
+  animation: productCardEnter 520ms ease both;
+}
+
+.hero-product-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.order-pill {
+  animation: softReveal 260ms ease both;
+}
+
+.order-journey-panel {
+  animation: resultsReveal 360ms ease both;
+}
+
+.glass-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 249, 240, 0.68));
+  border-color: rgba(255, 255, 255, 0.72);
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 60px rgba(23, 19, 18, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.luminous-input {
+  position: relative;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.luminous-input::after {
+  border-radius: inherit;
+  box-shadow: 0 0 34px rgba(246, 196, 83, 0.24);
+  content: "";
+  inset: -1px;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 180ms ease;
+}
+
+.luminous-input:focus-within {
+  border-color: rgba(211, 47, 47, 0.42);
+  box-shadow:
+    0 12px 42px rgba(23, 19, 18, 0.08),
+    0 0 0 4px rgba(211, 47, 47, 0.08);
+  transform: translateY(-1px);
+}
+
+.luminous-input:focus-within::after {
+  opacity: 1;
+}
+
+.soft-reveal {
+  animation: softReveal 420ms ease both;
+}
+
+.results-reveal {
+  animation: resultsReveal 520ms ease both;
+}
+
+.product-card-enter {
+  animation: productCardEnter 520ms ease both;
+}
+
+.curated-shimmer {
+  position: relative;
+}
+
+.curated-shimmer::after {
+  animation: curatedShimmer 1.3s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(246, 196, 83, 0.82),
+    transparent
+  );
+  content: "";
+  inset: 0;
+  position: absolute;
+  transform: translateX(-100%);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-retail-gray);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+@keyframes softReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes resultsReveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes productCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes productFocusReveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes curatedShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (min-width: 900px) {
+  .hero-product-grid {
+    grid-template-columns: minmax(18rem, 0.95fr) minmax(20rem, 1.05fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .results-toolbar {
+    grid-template-columns: minmax(13rem, 0.45fr) minmax(24rem, 0.55fr);
+  }
+
+  .results-heading-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  }
+
+  .product-results-grid {
+    grid-template-columns: minmax(18rem, 0.95fr) minmax(0, 1.05fr);
+  }
+
+  .product-side-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .focused-product-shell {
+    grid-template-columns: minmax(17rem, 0.82fr) minmax(0, 1.18fr);
+    padding: 1.1rem;
+  }
+
+  .checkout-journey-grid {
+    grid-template-columns: 1.05fr 0.75fr 0.75fr 0.9fr;
+  }
+
+  .checkout-workspace {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .intent-constellation-map {
+    min-height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
