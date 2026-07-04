@@ -1,7 +1,7 @@
-tunnel: kapruka-ai-agent
+tunnel: k-concierge
 credentials-file: /etc/cloudflared/<tunnel-id>.json
 
 ingress:
-  - hostname: kapruka.example.com
+  - hostname: k-concierge.example.com
     service: http://localhost:80
   - service: http_status:404

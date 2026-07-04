@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "kapruka-web",
+      name: "k-concierge-web",
       script: "npm",
       args: "run start",
       env: {
@@ -11,7 +11,7 @@ module.exports = {
       max_memory_restart: "512M",
     },
     {
-      name: "kapruka-relay",
+      name: "k-concierge-relay",
       script: "npm",
       args: "run relay:start",
       env: {

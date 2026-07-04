@@ -100,7 +100,7 @@ target runtime.
 The repo includes deployment assets for running the whole app on one Ubuntu VPS:
 
 - `ecosystem.config.cjs` runs the Next.js app and relay with PM2.
-- `deploy/nginx/kapruka-ai-agent.conf` proxies `/` to Next.js and `/relay` to
+- `deploy/nginx/k-concierge.conf` proxies `/` to Next.js and `/relay` to
   the WebSocket relay.
 - `deploy/cloudflare/config.example.yml` is a starting point for a named
   Cloudflare Tunnel when you have a domain.
@@ -108,8 +108,8 @@ The repo includes deployment assets for running the whole app on one Ubuntu VPS:
 On the VPS:
 
 ```bash
-git clone <repo-url> kapruka-ai-agent
-cd kapruka-ai-agent
+git clone <repo-url> k-concierge
+cd k-concierge
 npm ci
 cp .env.example .env.local
 ```
@@ -148,8 +148,8 @@ printed command once so PM2 restarts the app after a reboot.
 Install the Nginx proxy:
 
 ```bash
-sudo cp deploy/nginx/kapruka-ai-agent.conf /etc/nginx/sites-available/kapruka-ai-agent
-sudo ln -sf /etc/nginx/sites-available/kapruka-ai-agent /etc/nginx/sites-enabled/kapruka-ai-agent
+sudo cp deploy/nginx/k-concierge.conf /etc/nginx/sites-available/k-concierge
+sudo ln -sf /etc/nginx/sites-available/k-concierge /etc/nginx/sites-enabled/k-concierge
 sudo nginx -t
 sudo systemctl reload nginx
 ```
