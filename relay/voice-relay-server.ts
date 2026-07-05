@@ -1360,7 +1360,9 @@ function createGeminiSetupMessage(config: RelayConfig): Record<string, unknown> 
       systemInstruction: {
         parts: [{ text: CONCIERGE_SYSTEM_PROMPT }],
       },
-      responseModalities: ["AUDIO"],
+      generationConfig: {
+        responseModalities: ["AUDIO"],
+      },
       inputAudioTranscription: {},
       outputAudioTranscription: {},
       tools: [

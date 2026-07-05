@@ -252,7 +252,9 @@ describe("voice relay server", () => {
     expect(setupMessage).toMatchObject({
       setup: {
         model: "models/gemini-3.1-flash-live-preview",
-        responseModalities: ["AUDIO"],
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+        },
       },
     });
     const declarations = ((setupMessage.setup as Record<string, unknown>)
@@ -267,7 +269,7 @@ describe("voice relay server", () => {
           },
         },
       });
-    expect(setupMessage).not.toHaveProperty("setup.generationConfig");
+    expect(setupMessage).not.toHaveProperty("setup.responseModalities");
     gemini.send(JSON.stringify({ setupComplete: {} }));
     await liveStatus;
 
