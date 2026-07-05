@@ -78,6 +78,7 @@ describe("app store prompt controls", () => {
       assistantCommands: {
         addProductToCart,
         submitText,
+        toggleLive: vi.fn(),
         toggleVoice: vi.fn(),
       },
       products: PRODUCTS,
@@ -101,6 +102,7 @@ describe("app store prompt controls", () => {
       assistantCommands: {
         addProductToCart,
         submitText: vi.fn().mockResolvedValue(undefined),
+        toggleLive: vi.fn(),
         toggleVoice: vi.fn(),
       },
       products: PRODUCTS,
@@ -122,6 +124,7 @@ describe("app store prompt controls", () => {
       assistantCommands: {
         addProductToCart,
         submitText: vi.fn().mockResolvedValue(undefined),
+        toggleLive: vi.fn(),
         toggleVoice: vi.fn(),
       },
       products: PRODUCTS,
@@ -147,6 +150,7 @@ describe("app store prompt controls", () => {
       assistantCommands: {
         addProductToCart,
         submitText: vi.fn().mockResolvedValue(undefined),
+        toggleLive: vi.fn(),
         toggleVoice: vi.fn(),
       },
       products: PRODUCTS,
@@ -171,6 +175,7 @@ describe("app store prompt controls", () => {
       assistantCommands: {
         addProductToCart,
         submitText,
+        toggleLive: vi.fn(),
         toggleVoice: vi.fn(),
       },
       products: PRODUCTS,
@@ -212,5 +217,13 @@ describe("app store prompt controls", () => {
     expect(useAppStore.getState().activeStage).toBe("CHECKOUT");
     expect(useAppStore.getState().isCartTrayOpen).toBe(true);
     expect(createOrder).not.toHaveBeenCalled();
+  });
+
+  it("shows a friendly error when live mode is requested before controls are ready", async () => {
+    await useAppStore.getState().requestLiveToggle();
+
+    expect(useAppStore.getState().voiceError).toBe(
+      "Live Conversation is still getting ready. Try again in a moment.",
+    );
   });
 });

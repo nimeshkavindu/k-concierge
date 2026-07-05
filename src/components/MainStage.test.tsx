@@ -54,6 +54,7 @@ describe("MainStage", () => {
     useAppStore.setState({
       assistantCommands: {
         submitText,
+        toggleLive: vi.fn(),
         toggleVoice: vi.fn(),
       },
     });
@@ -62,6 +63,22 @@ describe("MainStage", () => {
     fireEvent.click(screen.getByRole("button", { name: /tea gifts/i }));
 
     await waitFor(() => expect(submitText).toHaveBeenCalledWith("Tea gifts"));
+  });
+
+  it("shows a live conversation icon button beside Ask", async () => {
+    const toggleLive = vi.fn().mockResolvedValue(undefined);
+    useAppStore.setState({
+      assistantCommands: {
+        submitText: vi.fn().mockResolvedValue(undefined),
+        toggleLive,
+        toggleVoice: vi.fn(),
+      },
+    });
+
+    render(<MainStage />);
+    fireEvent.click(screen.getByRole("button", { name: /start live conversation/i }));
+
+    await waitFor(() => expect(toggleLive).toHaveBeenCalledTimes(1));
   });
 
   it("moves product discovery from searching to ready", () => {
@@ -178,6 +195,7 @@ describe("MainStage", () => {
       relayConnected: true,
       assistantCommands: {
         submitText,
+        toggleLive: vi.fn(),
         toggleVoice: vi.fn(),
       },
       products: [
@@ -229,6 +247,7 @@ describe("MainStage", () => {
       assistantCommands: {
         addProductToCart,
         submitText,
+        toggleLive: vi.fn(),
         toggleVoice: vi.fn(),
       },
       products: [
@@ -265,6 +284,7 @@ describe("MainStage", () => {
       assistantCommands: {
         addProductToCart,
         submitText,
+        toggleLive: vi.fn(),
         toggleVoice: vi.fn(),
       },
       products: [

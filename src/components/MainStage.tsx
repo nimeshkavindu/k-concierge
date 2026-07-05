@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   Eye,
   Gift,
+  Headphones,
   Heart,
   Loader2,
   MapPin,
@@ -58,6 +59,7 @@ export default function MainStage() {
     relayConnected,
     requestAddToCart,
     requestAssistantText,
+    requestLiveToggle,
     requestVoiceToggle,
     selectedProductId,
     setRouteFilter,
@@ -104,12 +106,22 @@ export default function MainStage() {
     });
   };
 
+  const handleLiveToggle = () => {
+    void requestLiveToggle().catch((error) => {
+      console.error("[voice-ui]", "primary_prompt.live_failed", {
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    });
+  };
+
   const isBusy =
     isSubmitting ||
     agentVoiceStatus === "CONNECTING" ||
     agentVoiceStatus === "RECORDING" ||
     agentVoiceStatus === "TRANSCRIBING" ||
     agentVoiceStatus === "THINKING";
+  const isLiveActive = agentVoiceStatus === "LIVE";
+  const isLiveConnecting = agentVoiceStatus === "LIVE_CONNECTING";
   const showWelcome = activeStage === "WELCOME" && productStatus === "idle";
 
   useEffect(() => {
@@ -128,6 +140,7 @@ export default function MainStage() {
       {showWelcome ? (
         <WelcomeScreen
           agentVoiceStatus={agentVoiceStatus}
+          handleLiveToggle={handleLiveToggle}
           handleSubmit={handleSubmit}
           handleVoiceToggle={handleVoiceToggle}
           intentSignals={intentSignals}
@@ -144,9 +157,13 @@ export default function MainStage() {
           assistantSummary={assistantSummary}
           activeRouteFilter={activeRouteFilter}
           closeProductDetail={closeProductDetail}
+          agentVoiceStatus={agentVoiceStatus}
+          handleLiveToggle={handleLiveToggle}
           handleSubmit={handleSubmit}
           handleVoiceToggle={handleVoiceToggle}
           isBusy={isBusy}
+          isLiveActive={isLiveActive}
+          isLiveConnecting={isLiveConnecting}
           isSubmitting={isSubmitting}
           lastUserIntent={lastUserIntent}
           latestAssistantReply={latestAssistantReply}
@@ -171,6 +188,7 @@ export default function MainStage() {
 
 function WelcomeScreen({
   agentVoiceStatus,
+  handleLiveToggle,
   handleSubmit,
   handleVoiceToggle,
   intentSignals,
@@ -183,6 +201,7 @@ function WelcomeScreen({
   voiceError,
 }: {
   agentVoiceStatus: string;
+  handleLiveToggle: () => void;
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void;
   handleVoiceToggle: () => void;
   intentSignals: IntentSignals;
@@ -221,8 +240,12 @@ function WelcomeScreen({
         </p>
 
         <AssistantPrompt
+          agentVoiceStatus={agentVoiceStatus}
+          handleLiveToggle={handleLiveToggle}
           handleSubmit={handleSubmit}
           handleVoiceToggle={handleVoiceToggle}
+          isLiveActive={agentVoiceStatus === "LIVE"}
+          isLiveConnecting={agentVoiceStatus === "LIVE_CONNECTING"}
           isSubmitting={isSubmitting}
           prompt={prompt}
           setPrompt={setPrompt}
@@ -247,15 +270,23 @@ function WelcomeScreen({
 }
 
 function AssistantPrompt({
+  agentVoiceStatus,
+  handleLiveToggle,
   handleSubmit,
   handleVoiceToggle,
+  isLiveActive,
+  isLiveConnecting,
   isSubmitting,
   prompt,
   setPrompt,
   variant,
 }: {
+  agentVoiceStatus: string;
+  handleLiveToggle: () => void;
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void;
   handleVoiceToggle: () => void;
+  isLiveActive: boolean;
+  isLiveConnecting: boolean;
   isSubmitting: boolean;
   prompt: string;
   setPrompt: (value: string) => void;
@@ -309,6 +340,27 @@ function AssistantPrompt({
         }`}
       >
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ask"}
+      </button>
+      <button
+        type="button"
+        onClick={handleLiveToggle}
+        disabled={isSubmitting || isLiveConnecting}
+        aria-label={isLiveActive ? "Stop Live Conversation" : "Start Live Conversation"}
+        aria-pressed={isLiveActive}
+        title={isLiveActive ? "Stop Live Conversation" : "Start Live Conversation"}
+        className={`flex shrink-0 items-center justify-center rounded-full border font-bold transition-colors ${
+          isLiveActive
+            ? "border-kapruka-red bg-kapruka-red text-white"
+            : "border-retail-border bg-white text-retail-charcoal hover:border-kapruka-red/30 hover:text-kapruka-red"
+        } ${
+          variant === "hero" ? "h-12 w-12" : "h-10 w-10"
+        } disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500`}
+      >
+        {agentVoiceStatus === "LIVE_CONNECTING" ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Headphones className="h-4 w-4" />
+        )}
       </button>
     </form>
   );
@@ -411,12 +463,16 @@ function IntentConstellation({ intentSignals }: { intentSignals: IntentSignals }
 }
 
 function ProductDiscovery({
+  agentVoiceStatus,
   activeRouteFilter,
   assistantSummary,
   closeProductDetail,
+  handleLiveToggle,
   handleSubmit,
   handleVoiceToggle,
   isBusy,
+  isLiveActive,
+  isLiveConnecting,
   isSubmitting,
   lastUserIntent,
   latestAssistantReply,
@@ -434,12 +490,16 @@ function ProductDiscovery({
   submitPrompt,
   voiceError,
 }: {
+  agentVoiceStatus: string;
   activeRouteFilter: RouteFilter;
   assistantSummary: string | null;
   closeProductDetail: () => void;
+  handleLiveToggle: () => void;
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void;
   handleVoiceToggle: () => void;
   isBusy: boolean;
+  isLiveActive: boolean;
+  isLiveConnecting: boolean;
   isSubmitting: boolean;
   lastUserIntent: string | null;
   latestAssistantReply: string | null;
@@ -468,8 +528,12 @@ function ProductDiscovery({
   if (productStatus === "searching") {
     return (
       <ResultsShell
+        agentVoiceStatus={agentVoiceStatus}
+        handleLiveToggle={handleLiveToggle}
         handleSubmit={handleSubmit}
         handleVoiceToggle={handleVoiceToggle}
+        isLiveActive={isLiveActive}
+        isLiveConnecting={isLiveConnecting}
         isSubmitting={isSubmitting}
         lastUserIntent={lastUserIntent}
         prompt={prompt}
@@ -488,8 +552,12 @@ function ProductDiscovery({
   if (productStatus === "error") {
     return (
       <ResultsShell
+        agentVoiceStatus={agentVoiceStatus}
+        handleLiveToggle={handleLiveToggle}
         handleSubmit={handleSubmit}
         handleVoiceToggle={handleVoiceToggle}
+        isLiveActive={isLiveActive}
+        isLiveConnecting={isLiveConnecting}
         isSubmitting={isSubmitting}
         lastUserIntent={lastUserIntent}
         prompt={prompt}
@@ -511,8 +579,12 @@ function ProductDiscovery({
   if (products.length === 0) {
     return (
       <ResultsShell
+        agentVoiceStatus={agentVoiceStatus}
+        handleLiveToggle={handleLiveToggle}
         handleSubmit={handleSubmit}
         handleVoiceToggle={handleVoiceToggle}
+        isLiveActive={isLiveActive}
+        isLiveConnecting={isLiveConnecting}
         isSubmitting={isSubmitting}
         lastUserIntent={lastUserIntent}
         prompt={prompt}
@@ -551,8 +623,12 @@ function ProductDiscovery({
 
   return (
     <ResultsShell
+      agentVoiceStatus={agentVoiceStatus}
+      handleLiveToggle={handleLiveToggle}
       handleSubmit={handleSubmit}
       handleVoiceToggle={handleVoiceToggle}
+      isLiveActive={isLiveActive}
+      isLiveConnecting={isLiveConnecting}
       isSubmitting={isSubmitting}
       lastUserIntent={lastUserIntent}
       prompt={prompt}
@@ -628,18 +704,26 @@ function ProductDiscovery({
 }
 
 function ResultsShell({
+  agentVoiceStatus,
   children,
+  handleLiveToggle,
   handleSubmit,
   handleVoiceToggle,
+  isLiveActive,
+  isLiveConnecting,
   isSubmitting,
   lastUserIntent,
   prompt,
   setPrompt,
   voiceError,
 }: {
+  agentVoiceStatus: string;
   children: ReactNode;
+  handleLiveToggle: () => void;
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void;
   handleVoiceToggle: () => void;
+  isLiveActive: boolean;
+  isLiveConnecting: boolean;
   isSubmitting: boolean;
   lastUserIntent: string | null;
   prompt: string;
@@ -663,8 +747,12 @@ function ResultsShell({
           </div>
         </div>
         <AssistantPrompt
+          agentVoiceStatus={agentVoiceStatus}
+          handleLiveToggle={handleLiveToggle}
           handleSubmit={handleSubmit}
           handleVoiceToggle={handleVoiceToggle}
+          isLiveActive={isLiveActive}
+          isLiveConnecting={isLiveConnecting}
           isSubmitting={isSubmitting}
           prompt={prompt}
           setPrompt={setPrompt}

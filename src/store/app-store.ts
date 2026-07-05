@@ -45,6 +45,7 @@ interface RelayCommands {
 
 interface AssistantCommands {
   submitText: (text: string) => Promise<void>;
+  toggleLive: () => Promise<void>;
   toggleVoice: () => Promise<void>;
   addProductToCart?: (productId: string, quantity: number) => Promise<void>;
 }
@@ -109,6 +110,7 @@ interface AppState {
   setRelayCommands: (commands: RelayCommands | null) => void;
   setAssistantCommands: (commands: AssistantCommands | null) => void;
   requestAssistantText: (text: string) => Promise<void>;
+  requestLiveToggle: () => Promise<void>;
   requestVoiceToggle: () => Promise<void>;
   requestAddToCart: (productId: string, quantity?: number) => void;
   requestCreateOrder: (checkout: CheckoutDetails) => void;
@@ -486,6 +488,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     await commands.toggleVoice();
+  },
+
+  requestLiveToggle: async () => {
+    const commands = get().assistantCommands;
+    if (!commands) {
+      set({
+        voiceError: "Live Conversation is still getting ready. Try again in a moment.",
+      });
+      return;
+    }
+
+    await commands.toggleLive();
   },
 
   requestAddToCart: (productId, quantity = 1) => {

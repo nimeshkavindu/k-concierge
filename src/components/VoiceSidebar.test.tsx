@@ -157,6 +157,43 @@ describe("VoiceSidebar", () => {
     expect(useAppStore.getState().productStatus).toBe("searching");
   });
 
+  it("starts live conversation through the shared assistant command", async () => {
+    let resolveLive!: () => void;
+    const liveReady = new Promise<void>((resolve) => {
+      resolveLive = resolve;
+    });
+    mocks.connect.mockImplementation(async () => {
+      mocks.order.push("connect");
+    });
+    mocks.startLive.mockImplementation(() => {
+      mocks.order.push("live");
+      return liveReady;
+    });
+    mocks.startRecording.mockImplementation(async (onChunk: (chunk: string) => void) => {
+      mocks.order.push("record");
+      onChunk("AAAA");
+    });
+
+    render(<VoiceSidebar />);
+    await waitFor(() =>
+      expect(useAppStore.getState().assistantCommands).not.toBeNull(),
+    );
+
+    const liveToggle = useAppStore.getState().requestLiveToggle();
+    await waitFor(() => expect(mocks.startLive).toHaveBeenCalledTimes(1));
+    expect(mocks.startRecording).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveLive();
+      await liveReady;
+      await liveToggle;
+    });
+
+    await waitFor(() => expect(mocks.startRecording).toHaveBeenCalledTimes(1));
+    expect(mocks.order).toEqual(["connect", "live", "record"]);
+    expect(mocks.sendLiveAudioChunk).toHaveBeenCalledWith("AAAA");
+  });
+
   it("waits for live readiness before streaming microphone audio", async () => {
     let resolveLive!: () => void;
     const liveReady = new Promise<void>((resolve) => {

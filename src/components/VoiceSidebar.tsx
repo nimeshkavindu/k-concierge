@@ -343,11 +343,18 @@ export default function VoiceSidebar() {
     setAssistantCommands({
       addProductToCart,
       submitText: submitTextPrompt,
+      toggleLive: toggleLiveConversation,
       toggleVoice: toggleVoiceSession,
     });
 
     return () => setAssistantCommands(null);
-  }, [addProductToCart, setAssistantCommands, submitTextPrompt, toggleVoiceSession]);
+  }, [
+    addProductToCart,
+    setAssistantCommands,
+    submitTextPrompt,
+    toggleLiveConversation,
+    toggleVoiceSession,
+  ]);
 
   useEffect(() => {
     setRelayCommands(
