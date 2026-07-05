@@ -14,11 +14,11 @@ import {
 } from "@/lib/product-routes";
 import {
   ArrowRight,
+  AudioLines,
   Calendar,
   CheckCircle2,
   Eye,
   Gift,
-  Headphones,
   Heart,
   Loader2,
   MapPin,
@@ -359,7 +359,12 @@ function AssistantPrompt({
         {agentVoiceStatus === "LIVE_CONNECTING" ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Headphones className="h-4 w-4" />
+          <span
+            className={`live-signal-button-mark ${isLiveActive ? "is-active" : ""}`}
+            aria-hidden="true"
+          >
+            <AudioLines className="h-4 w-4" />
+          </span>
         )}
       </button>
     </form>

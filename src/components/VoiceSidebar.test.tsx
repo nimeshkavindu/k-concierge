@@ -256,4 +256,37 @@ describe("VoiceSidebar", () => {
     expect(mocks.sendLiveAudioChunk).not.toHaveBeenCalled();
     expect(useAppStore.getState().agentVoiceStatus).toBe("IDLE");
   });
+
+  it("shows a floating live island with a stop control", () => {
+    useAppStore.setState({ agentVoiceStatus: "LIVE" });
+
+    render(<VoiceSidebar />);
+
+    expect(
+      screen.getByRole("status", { name: /live conversation status/i }),
+    ).toHaveTextContent(/listening now/i);
+
+    fireEvent.click(screen.getByRole("button", { name: /stop live conversation/i }));
+
+    expect(mocks.stopLive).toHaveBeenCalledTimes(1);
+    expect(mocks.stopPlayback).toHaveBeenCalledTimes(1);
+    expect(mocks.stopRecording).toHaveBeenCalled();
+    expect(useAppStore.getState().agentVoiceStatus).toBe("IDLE");
+  });
+
+  it("keeps relay live setup failures as voice errors", async () => {
+    mocks.startLive.mockRejectedValue(new Error("Voice service connection failed."));
+
+    render(<VoiceSidebar />);
+    await waitFor(() =>
+      expect(useAppStore.getState().assistantCommands).not.toBeNull(),
+    );
+
+    await expect(useAppStore.getState().requestLiveToggle()).resolves.toBeUndefined();
+
+    expect(useAppStore.getState().voiceError).toBe("Voice service connection failed.");
+    expect(useAppStore.getState().productStatus).toBe("idle");
+    expect(mocks.stopPlayback).toHaveBeenCalledTimes(1);
+    expect(mocks.stopRecording).toHaveBeenCalled();
+  });
 });

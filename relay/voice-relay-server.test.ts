@@ -252,8 +252,10 @@ describe("voice relay server", () => {
     expect(setupMessage).toMatchObject({
       setup: {
         model: "models/gemini-3.1-flash-live-preview",
+        responseModalities: ["AUDIO"],
       },
     });
+    expect(setupMessage).not.toHaveProperty("setup.generationConfig");
     gemini.send(JSON.stringify({ setupComplete: {} }));
     await liveStatus;
 
@@ -263,6 +265,54 @@ describe("voice relay server", () => {
     ).resolves.toMatchObject({
       realtimeInput: {
         audio: { mimeType: "audio/pcm;rate=16000", data: "AAAA" },
+      },
+    });
+  });
+
+  it("handles Gemini Live top-level tool calls", async () => {
+    const harness = await createHarness("https://checkout.kapruka.com/pay/123");
+    const productsMessage = waitForMessage(
+      harness.client,
+      (message) => message.type === "products" && message.products.length > 0,
+    );
+
+    harness.client.send(JSON.stringify({ type: "live_start" }));
+    const gemini = await harness.geminiConnection;
+    await waitForGeminiMessage(gemini, (message) => Boolean(message.setup));
+    gemini.send(JSON.stringify({ setupComplete: {} }));
+    await waitForMessage(
+      harness.client,
+      (message) => message.type === "status" && message.status === "LIVE",
+    );
+
+    gemini.send(
+      JSON.stringify({
+        toolCall: {
+          functionCalls: [
+            {
+              id: "live-search-1",
+              name: "search_products",
+              args: { query: "tea" },
+            },
+          ],
+        },
+      }),
+    );
+
+    await expect(productsMessage).resolves.toMatchObject({
+      type: "products",
+      products: [{ id: "tea-1", name: "Ceylon Tea", priceLKR: 1200 }],
+    });
+    await expect(
+      waitForGeminiMessage(gemini, (message) => Boolean(message.toolResponse)),
+    ).resolves.toMatchObject({
+      toolResponse: {
+        functionResponses: [
+          {
+            id: "live-search-1",
+            name: "search_products",
+          },
+        ],
       },
     });
   });

@@ -14,7 +14,8 @@ import {
   pcm16Base64ChunksToWavBase64,
 } from "@/lib/wav-utils";
 import {
-  Headphones,
+  AudioLines,
+  CircleStop,
   Loader2,
   MessageCircle,
   Mic,
@@ -53,6 +54,8 @@ export default function VoiceSidebar() {
   const isRecordingTurn = recordingMode === "turn";
   const isLiveRecording = recordingMode === "live";
   const isLiveConnecting = agentVoiceStatus === "LIVE_CONNECTING" && !isLiveRecording;
+  const isLiveSessionVisible =
+    isLiveRecording || isLiveConnecting || agentVoiceStatus === "LIVE";
 
   const clearTurnTimers = useCallback(() => {
     if (maxTurnTimerRef.current) {
@@ -216,6 +219,21 @@ export default function VoiceSidebar() {
     setVoiceStatus("IDLE");
   }, [setVoiceStatus, stopVoiceRecording]);
 
+  const stopLiveConversation = useCallback(() => {
+    console.info("[voice-ui]", "live.stop_requested");
+    stopVoiceRecording();
+    stopLive();
+    stopPlayback();
+    setVoiceError(null);
+    setVoiceStatus("IDLE");
+  }, [
+    setVoiceError,
+    setVoiceStatus,
+    stopLive,
+    stopPlayback,
+    stopVoiceRecording,
+  ]);
+
   const toggleLiveConversation = useCallback(async () => {
     console.info("[voice-ui]", "live.toggle", {
       isConnected,
@@ -223,12 +241,8 @@ export default function VoiceSidebar() {
       recordingMode,
     });
 
-    if (isLiveRecording) {
-      console.info("[voice-ui]", "live.stop_requested");
-      stopVoiceRecording();
-      stopLive();
-      stopPlayback();
-      setVoiceStatus("IDLE");
+    if (isLiveRecording || isLiveConnecting || agentVoiceStatus === "LIVE") {
+      stopLiveConversation();
       return;
     }
 
@@ -250,6 +264,13 @@ export default function VoiceSidebar() {
       setVoiceError(null);
       setVoiceStatus("LIVE");
     } catch (error) {
+      if (isExpectedLiveStopError(error)) {
+        stopPlayback();
+        stopVoiceRecording();
+        setVoiceStatus("IDLE");
+        return;
+      }
+
       if (isAudioCaptureStartError(error)) {
         stopLive();
         if (handleAudioCaptureFailure("live.start_failed", error)) {
@@ -261,18 +282,19 @@ export default function VoiceSidebar() {
       console.error("[voice-ui]", "live.start_failed", {
         message: error instanceof Error ? error.message : "Unknown error",
       });
-      setVoiceError("Live Conversation could not start. Try again in a moment.");
+      setVoiceError(getLiveStartFailureMessage(error));
       stopPlayback();
       stopVoiceRecording();
       setVoiceStatus("IDLE");
-      throw error;
     }
   }, [
+    agentVoiceStatus,
     cancelVoiceTurn,
     connect,
     initPlayback,
     isConnected,
     isConnecting,
+    isLiveConnecting,
     isLiveRecording,
     isRecordingTurn,
     recordingMode,
@@ -284,6 +306,7 @@ export default function VoiceSidebar() {
     startLive,
     startRecording,
     stopLive,
+    stopLiveConversation,
     stopPlayback,
     stopVoiceRecording,
   ]);
@@ -487,7 +510,7 @@ export default function VoiceSidebar() {
             className="flex h-11 items-center justify-center gap-2 rounded-full border border-retail-border bg-white px-4 text-sm font-semibold text-retail-charcoal"
             aria-expanded={isLivePanelOpen}
           >
-            <Headphones className="h-4 w-4" />
+            <AudioLines className="h-4 w-4" />
             Live Conversation
           </button>
           {isLivePanelOpen && (
@@ -509,7 +532,7 @@ export default function VoiceSidebar() {
                 {agentVoiceStatus === "LIVE_CONNECTING" ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Headphones className="h-4 w-4" />
+                  <AudioLines className="h-4 w-4" />
                 )}
                 {isLiveRecording ? "Stop Live" : isLiveConnecting ? "Starting..." : "Start Live"}
               </button>
@@ -532,6 +555,44 @@ export default function VoiceSidebar() {
       <p className="sr-only" aria-live="polite">
         {statusText}
       </p>
+
+      {isLiveSessionVisible && (
+        <aside
+          aria-label="Live Conversation status"
+          className="live-session-island"
+          role="status"
+        >
+          <span
+            className={`live-signal-mark ${
+              isLiveRecording || agentVoiceStatus === "LIVE" ? "is-active" : ""
+            }`}
+            aria-hidden="true"
+          >
+            {isLiveConnecting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <AudioLines className="h-4 w-4" />
+            )}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[0.68rem] font-black uppercase text-kapruka-red">
+              {isLiveConnecting ? "Starting Live" : "Live Conversation"}
+            </span>
+            <span className="block truncate text-xs font-semibold text-retail-charcoal">
+              {isLiveConnecting ? "Connecting audio..." : "Listening now"}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={stopLiveConversation}
+            className="live-session-stop"
+            aria-label="Stop Live Conversation"
+          >
+            <CircleStop className="h-4 w-4" />
+            <span>{isLiveConnecting ? "Cancel" : "Stop"}</span>
+          </button>
+        </aside>
+      )}
     </>
   );
 }
@@ -568,6 +629,19 @@ function RailButton({
       {label}
     </button>
   );
+}
+
+function getLiveStartFailureMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message.trim() : "";
+  if (!message) return "Live Conversation could not start. Try again in a moment.";
+  if (message === "Live Conversation stopped before it was ready.") {
+    return "Live Conversation could not start. Try again in a moment.";
+  }
+  return message;
+}
+
+function isExpectedLiveStopError(error: unknown): boolean {
+  return error instanceof Error && error.message === "Live Conversation stopped.";
 }
 
 function getStatusText({

@@ -77,6 +77,74 @@ html, body {
   z-index: 36;
 }
 
+.live-session-island {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(211, 47, 47, 0.18);
+  border-radius: 999px;
+  box-shadow: 0 18px 54px rgba(23, 19, 18, 0.16);
+  display: flex;
+  gap: 0.75rem;
+  left: 50%;
+  max-width: calc(100vw - 2rem);
+  min-height: 3.25rem;
+  padding: 0.55rem 0.65rem 0.55rem 0.75rem;
+  position: fixed;
+  top: 1rem;
+  transform: translateX(-50%);
+  width: min(24rem, calc(100vw - 2rem));
+  z-index: 60;
+}
+
+.live-signal-mark,
+.live-signal-button-mark {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  justify-content: center;
+  position: relative;
+}
+
+.live-signal-mark {
+  background: rgba(211, 47, 47, 0.10);
+  color: var(--color-kapruka-red);
+  flex-shrink: 0;
+  height: 2.25rem;
+  width: 2.25rem;
+}
+
+.live-signal-mark.is-active::before {
+  animation: liveSignalPulse 1.45s ease-out infinite;
+  border: 1px solid rgba(211, 47, 47, 0.35);
+  border-radius: inherit;
+  content: "";
+  inset: -0.35rem;
+  position: absolute;
+}
+
+.live-signal-button-mark.is-active {
+  animation: liveSignalBreathe 1.15s ease-in-out infinite;
+}
+
+.live-session-stop {
+  align-items: center;
+  background: var(--color-kapruka-red);
+  border-radius: 999px;
+  color: white;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 900;
+  gap: 0.35rem;
+  min-height: 2.25rem;
+  padding: 0 0.75rem;
+  transition: background-color 160ms ease;
+}
+
+.live-session-stop:hover {
+  background: #B91C1C;
+}
+
 .home-screen {
   background:
     radial-gradient(circle at 50% 68%, rgba(246, 196, 83, 0.16), transparent 25%),
@@ -472,6 +540,27 @@ html, body {
   }
 }
 
+@keyframes liveSignalPulse {
+  0% {
+    opacity: 0.65;
+    transform: scale(0.88);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.28);
+  }
+}
+
+@keyframes liveSignalBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
 @media (min-width: 900px) {
   .hero-product-grid {
     grid-template-columns: minmax(18rem, 0.95fr) minmax(20rem, 1.05fr);
@@ -479,6 +568,12 @@ html, body {
 }
 
 @media (min-width: 1024px) {
+  .live-session-island {
+    bottom: 6.75rem;
+    top: auto;
+    width: auto;
+  }
+
   .results-toolbar {
     grid-template-columns: minmax(13rem, 0.45fr) minmax(24rem, 0.55fr);
   }

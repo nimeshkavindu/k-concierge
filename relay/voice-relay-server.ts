@@ -714,6 +714,9 @@ async function handleGeminiMessage(
   if (responseRecord?.goAway) {
     logRelay("live.go_away", { goAway: responseRecord.goAway });
   }
+
+  await handleGeminiToolCallEnvelope(responseRecord, client, gemini, state, mcpClient);
+
   const serverContent = asRecord(response)?.serverContent;
   if (!serverContent || typeof serverContent !== "object") {
     logRelay("live.message.ignored_no_server_content");
@@ -792,6 +795,24 @@ async function handleGeminiMessage(
   if (serverContentRecord?.turnComplete === true) {
     logRelay("live.turn_complete");
     sendJson(client, { type: "status", status: "LIVE" });
+  }
+}
+
+async function handleGeminiToolCallEnvelope(
+  responseRecord: Record<string, unknown> | null,
+  client: WebSocket,
+  gemini: WebSocket,
+  state: SessionState,
+  mcpClient: KaprukaMCPClient,
+): Promise<void> {
+  const toolCall = asRecord(responseRecord?.toolCall);
+  const functionCalls = toolCall?.functionCalls;
+  if (!Array.isArray(functionCalls)) return;
+
+  for (const functionCall of functionCalls) {
+    const functionCallRecord = asRecord(functionCall);
+    if (!functionCallRecord) continue;
+    await handleToolCall(functionCallRecord, client, gemini, state, mcpClient);
   }
 }
 
@@ -1335,9 +1356,7 @@ function createGeminiSetupMessage(config: RelayConfig): Record<string, unknown> 
       systemInstruction: {
         parts: [{ text: CONCIERGE_SYSTEM_PROMPT }],
       },
-      generationConfig: {
-        responseModalities: ["AUDIO"],
-      },
+      responseModalities: ["AUDIO"],
       inputAudioTranscription: {},
       outputAudioTranscription: {},
       tools: [

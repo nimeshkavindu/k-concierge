@@ -150,8 +150,10 @@ export function useVoiceRelay(
         return;
       }
 
-      setCheckoutStatus("ERROR");
-      setProductStatus("error");
+      if (!isLiveRelayError(message.message)) {
+        setCheckoutStatus("ERROR");
+        setProductStatus("error");
+      }
       isLiveReadyRef.current = false;
       rejectPendingLiveStart(new Error(message.message));
       setVoiceError(message.message);
@@ -492,4 +494,8 @@ function summarizeRelayMessage(message: RelayServerMessage): Record<string, unkn
   }
 
   return message;
+}
+
+function isLiveRelayError(message: string): boolean {
+  return /\b(live conversation|voice service|gemini live)\b/i.test(message);
 }
