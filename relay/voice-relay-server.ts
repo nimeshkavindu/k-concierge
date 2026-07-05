@@ -495,8 +495,12 @@ async function getLiveSocket(
       });
     });
 
-    gemini.on("close", () => {
-      logRelay("live.close", { expected: session.liveCloseExpected });
+    gemini.on("close", (code, reason) => {
+      logRelay("live.close", {
+        expected: session.liveCloseExpected,
+        code,
+        reason: reason.toString("utf8"),
+      });
       const expected = session.liveCloseExpected;
       resetLiveState();
       if (!settled) {
@@ -512,8 +516,8 @@ async function getLiveSocket(
       sendJson(client, { type: "status", status: "IDLE" });
     });
 
-    gemini.on("error", () => {
-      logRelay("live.error");
+    gemini.on("error", (upstreamError) => {
+      logRelay("live.error", { message: errorToMessage(upstreamError) });
       resetLiveState();
       const error = new Error("Voice service connection failed.");
       sendJson(client, { type: "error", message: error.message });
@@ -1367,10 +1371,10 @@ function createGeminiSetupMessage(config: RelayConfig): Record<string, unknown> 
               description:
                 "Search the Kapruka product catalog. Use this whenever the user asks for an item.",
               parameters: {
-                type: "OBJECT",
+                type: "object",
                 properties: {
                   query: {
-                    type: "STRING",
+                    type: "string",
                     description: "The product name to search for.",
                   },
                 },
@@ -1381,11 +1385,11 @@ function createGeminiSetupMessage(config: RelayConfig): Record<string, unknown> 
               name: "add_to_cart",
               description: "Add a specific product to the user's shopping cart.",
               parameters: {
-                type: "OBJECT",
+                type: "object",
                 properties: {
-                  productId: { type: "STRING" },
+                  productId: { type: "string" },
                   quantity: {
-                    type: "NUMBER",
+                    type: "number",
                     description:
                       "Use 1 unless the user explicitly asks for another quantity. Do not infer quantity from product size, price, model number, or product name.",
                   },
@@ -1398,13 +1402,13 @@ function createGeminiSetupMessage(config: RelayConfig): Record<string, unknown> 
               description:
                 "Check if Kapruka can deliver to a specific city on a specific date.",
               parameters: {
-                type: "OBJECT",
+                type: "object",
                 properties: {
                   city: {
-                    type: "STRING",
+                    type: "string",
                     description: "Canonical Kapruka delivery city, such as Colombo 03 or Galle.",
                   },
-                  date: { type: "STRING", description: "YYYY-MM-DD format" },
+                  date: { type: "string", description: "YYYY-MM-DD format" },
                 },
                 required: ["city", "date"],
               },

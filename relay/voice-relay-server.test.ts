@@ -255,6 +255,18 @@ describe("voice relay server", () => {
         responseModalities: ["AUDIO"],
       },
     });
+    const declarations = ((setupMessage.setup as Record<string, unknown>)
+      .tools as Array<Record<string, unknown>>)[0]
+      .functionDeclarations as Array<Record<string, unknown>>;
+    expect(declarations.find((tool) => tool.name === "search_products"))
+      .toMatchObject({
+        parameters: {
+          type: "object",
+          properties: {
+            query: { type: "string" },
+          },
+        },
+      });
     expect(setupMessage).not.toHaveProperty("setup.generationConfig");
     gemini.send(JSON.stringify({ setupComplete: {} }));
     await liveStatus;
